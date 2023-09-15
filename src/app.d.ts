@@ -9,4 +9,10 @@ declare global {
 	}
 }
 
-export {};
+export { }
+export const roles = [
+  { name: 'marketing', prompt: 'Step by step instruction' },
+  { name: 'teacher', prompt: 'Make a joke' },
+//   { name: 'productManager', prompt: 'Make a joke' },
+//   { name: 'researcher', prompt: 'Summarize' }
+]

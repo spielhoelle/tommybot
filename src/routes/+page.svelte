@@ -1,74 +1,87 @@
 <script lang="ts">
-    import { readablestreamStore } from "$lib/readablestreamstore";
-    import { markdownParser } from "$lib/markdownparser";
-    import { fly } from "svelte/transition";
+    import { readablestreamStore } from '$lib/readablestreamstore'
+    import { markdownParser } from '$lib/markdownparser'
+    import { fly } from 'svelte/transition'
+    import Typingindicator from '$lib/typingindicator.svelte'
+    import { modelStore, chatHistoryStore } from '../stores.ts'
+    import { roles } from '../app.d'
 
-    import Typingindicator from "$lib/typingindicator.svelte";
+    const response = readablestreamStore()
 
-    const response = readablestreamStore();
+    const initial_chat_history: {
+        role: 'user' | 'assistant';
+        content: string;
+    }[] = []
 
-    let chat_history: { role: "user" | "assistant"; content: string }[] = [];
+    let chat_history = initial_chat_history
 
     async function handleSubmit(this: HTMLFormElement) {
-        if ($response.loading) return;
+      if ($response.loading) {
+        return
+      }
+    
+      const formData: FormData = new FormData(this)
+      const message = formData.get('message') as string
 
-        const formData: FormData = new FormData(this);
-        const message = formData.get("message") as string;
+      if (!message) {
+        return
+      }
 
-        if (message == "") return;
+      chat_history = [...chat_history, { role: 'user', content: message }]
+      chatHistoryStore.update(() => chat_history)
 
-        chat_history = [...chat_history, { role: "user", content: message }];
+      try {
+        const answer = response.request(
+          new Request('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chats: chat_history,
+              model: $modelStore,
+            }),
+          })
+        )
 
-        try {
-            const answer = response.request(
-                new Request("/api/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ chats: chat_history }),
-                })
-            );
+        // this.reset()
+        this.elements['chat-message'].value = ''
 
-            this.reset();
-
-            chat_history = [
-                ...chat_history,
-                { role: "assistant", content: (await answer) as string },
-            ];
-            console.log("chat_history", chat_history);
-        } catch (err) {
-            chat_history = [
-                ...chat_history,
-                { role: "assistant", content: `Error: ${err}` },
-            ];
-        }
+        chat_history = [
+          ...chat_history,
+          { role: 'assistant', content: (await answer) as string },
+        ]
+      } catch (err) {
+        chat_history = [
+          ...chat_history,
+          { role: 'assistant', content: `Error: ${err}` },
+        ]
+      }
     }
-    const roles = ["marketing", "teacher", "productManager", "researcher"];
 </script>
 
-<main class="flex flex-col space-y-4">
+<main class="flex flex-col space-y-4 w-full p-3 h-100">
     <div class="flex flex-col space-y-2">
-        <h1 class="text-3xl font-bold underline">Chat!</h1>
-        <p>Example made for <i><b>Intelligent Svelte</b></i>.</p>
+        <h1 class="text-3xl font-bold underline">Trained model!</h1>
     </div>
 
     <form
-        class="chat-wrapper"
+        class="chat-wrapper h-100"
         on:submit|preventDefault={handleSubmit}
         method="POST"
         action="/api/chat"
     >
-        Model <select
+        Select model <select
             name="role"
+            bind:value={$modelStore}
             on:change={(e) => {
-                console.log("role", e.target.selectedOptions[0].value);
+                modelStore.update(() => e.target.selectedOptions[0].value)
             }}
         >
             {#each roles as role}
-                <option value={role}>{role}</option>
+                <option value={role.name}>{role.name}</option>
             {/each}
         </select>
         <div
-            class="flex flex-col space-y-2 overflow-y-auto w-full aspect-square text-sm"
+            class="flex flex-col space-y-2 overflow-y-auto w-full text-sm h-100"
         >
             {#await new Promise((res) => setTimeout(res, 400)) then _}
                 <div class="flex">
@@ -76,13 +89,37 @@
                         in:fly={{ y: 50, duration: 400 }}
                         class="assistant-chat"
                     >
-                        Hello! How can I help you today?
+                        What do you want to talk about?<br />
+                        <div class="d-flex">
+                            {#each roles as role}
+                                <button
+                                    class="btn btn-secondary btn-sm mb-1 me-1"
+                                    on:mouseup={(e) => {
+                                        console.log('e', e)
+                                        e.stopPropagation()
+                                        document.getElementById(
+                                            'chat-message'
+                                        ).value = e.target.innerText
+                                        setTimeout(() => {
+                                        const buttons = e.target.closest('.d-flex').querySelectorAll('button')
+                                        buttons.forEach(element => {
+                                            element.disabled = true
+                                            element.tabindex = -1
+                                            element.blur()
+                                            document.querySelector('#chat-message').focus()
+                                        })
+                                        }, 200)
+                                    }}
+                                >{role.prompt}</button
+                                ><br />
+                            {/each}
+                        </div>
                     </div>
                 </div>
             {/await}
 
             {#each chat_history as chat}
-                {#if chat.role == "user"}
+                {#if chat.role == 'user'}
                     <div class="flex justify-end">
                         <div
                             in:fly={{ y: 50, duration: 600 }}
@@ -118,7 +155,7 @@
                             in:fly={{ y: 50, duration: 600 }}
                             class="assistant-chat"
                         >
-                            {#if $response.text == ""}
+                            {#if $response.text == ''}
                                 <Typingindicator />
                             {:else}
                                 {#await markdownParser($response.text)}
@@ -128,7 +165,7 @@
                                 {/await}
                             {/if}
                         </div>
-                        {#if $response.text != ""}
+                        {#if $response.text != ''}
                             <div class="w-2" />
                             <div class="w-4 m-1">
                                 <svg
@@ -165,9 +202,15 @@
                 type="text"
                 placeholder="Type your message..."
                 name="message"
+                id="chat-message"
                 class="chat-message"
+            on:keyup={e => {
+                if (e.key === 'Enter') {
+                    handleSubmit.call(e.target.closest('form'))
+                }
+            }}
             />
-            <button type="submit" class="chat-send"> Send </button>
+            <button type="submit" tabindex="0" class="chat-send"> Send </button>
         </span>
     </form>
 </main>
@@ -191,5 +234,8 @@
 
     .chat-send {
         @apply block items-center rounded-md border border-transparent bg-neutral-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2;
+    }
+    .h-100 {
+        height: 100%;
     }
 </style>
