@@ -4,7 +4,8 @@
     import { fly } from 'svelte/transition'
     import Typingindicator from '$lib/typingindicator.svelte'
     import { modelStore, chatHistoryStore } from '../stores.ts'
-    import { roles } from '../app.d'
+    import { chatTasks, roles } from '../app.d'
+    import Button from './button.svelte'
 
     const response = readablestreamStore()
 
@@ -71,11 +72,12 @@
     >
         Select model <select
             name="role"
-            bind:value={$modelStore}
+bind:value={$modelStore}
             on:change={(e) => {
                 modelStore.update(() => e.target.selectedOptions[0].value)
             }}
         >
+            <option  value="" selected disabled hidden>Select model...</option>
             {#each roles as role}
                 <option value={role.name}>{role.name}</option>
             {/each}
@@ -83,42 +85,22 @@
         <div
             class="flex flex-col space-y-2 overflow-y-auto w-full text-sm h-100"
         >
-            {#await new Promise((res) => setTimeout(res, 400)) then _}
-                <div class="flex">
-                    <div
-                        in:fly={{ y: 50, duration: 400 }}
-                        class="assistant-chat"
-                    >
-                        What do you want to talk about?<br />
-                        <div class="d-flex">
-                            {#each roles as role}
-                                <button
-                                    class="btn btn-secondary btn-sm mb-1 me-1"
-                                    on:mouseup={(e) => {
-                                        console.log('e', e)
-                                        e.stopPropagation()
-                                        document.getElementById(
-                                            'chat-message'
-                                        ).value = e.target.innerText
-                                        setTimeout(() => {
-                                        const buttons = e.target.closest('.d-flex').querySelectorAll('button')
-                                        buttons.forEach(element => {
-                                            element.disabled = true
-                                            element.tabindex = -1
-                                            element.blur()
-                                            document.querySelector('#chat-message').focus()
-                                        })
-                                        }, 200)
-                                    }}
-                                >{role.prompt}</button
-                                ><br />
-                            {/each}
+        	{#if $modelStore}
+                {#await new Promise((res) => setTimeout(res, 400)) then _}
+                    <div class="flex">
+                        <div
+                            in:fly={{ y: 50, duration: 400 }}
+                            class="assistant-chat"
+                        >
+                            What do you want to talk about?<br />
+                            <Button
+                                role={chatTasks[0]}
+                            />
                         </div>
                     </div>
-                </div>
-            {/await}
-
-            {#each chat_history as chat}
+                {/await}
+            {/if}
+            {#each chat_history as chat, index}
                 {#if chat.role == 'user'}
                     <div class="flex justify-end">
                         <div
@@ -143,6 +125,11 @@
                             {:then html}
                                 {@html html}
                             {/await}
+                            {#if  chatTasks.find(r => r.cmd === chat_history[index - 1].content)}
+                                <Button
+                                    role={chatTasks.find(r => r.cmd === chat_history[index - 1].content)}
+                                />
+                            {/if}
                         </div>
                     </div>
                 {/if}
@@ -200,7 +187,7 @@
         <span class="flex flex-row space-x-4">
             <input
                 type="text"
-                placeholder="Type your message..."
+                placeholder="Type your message... or use /start or /task"
                 name="message"
                 id="chat-message"
                 class="chat-message"

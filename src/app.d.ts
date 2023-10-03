@@ -11,8 +11,30 @@ declare global {
 
 export { }
 export const roles = [
-  { name: 'marketing', prompt: 'Step by step instruction' },
-  { name: 'teacher', prompt: 'Make a joke' },
+  // { name: 'metalpoet' },
+  { name: 'marketing' },
+  { name: 'teacher' },
 //   { name: 'productManager', prompt: 'Make a joke' },
 //   { name: 'researcher', prompt: 'Summarize' }
 ]
+export const chatTasks = [ {
+  cmd: '/start',
+  question: 'What do you want to talk about',
+  tasks: [
+    { prompt: 'How-to step by step instruction' },
+    { prompt: 'Make a joke' },
+    { prompt: 'Give me a summary' }
+    //   { prompt: 'Make a joke' },
+    //   { prompt: 'Summarize' }
+  ]
+},
+{
+  cmd: '/task',
+  question: 'Okay tell me about your task',
+  tasks: [
+    { prompt: 'I need a lesson-plan for Chemistry' },
+    { prompt: 'I need to correct Homework' }
+    //   { prompt: 'Make a joke' },
+    //   { prompt: 'Summarize' }
+  ]
+} ]
