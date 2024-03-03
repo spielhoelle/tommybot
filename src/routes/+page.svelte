@@ -4,8 +4,10 @@
     import { fly } from 'svelte/transition'
     import Typingindicator from '$lib/typingindicator.svelte'
     import { modelStore, chatHistoryStore } from '../stores.ts'
-    import { chatTasks, roles } from '../app.d'
+    import { chatTasks } from '../app.d'
     import Button from './button.svelte'
+    import { onMount } from 'svelte'
+    let roles = []
 
     const response = readablestreamStore()
 
@@ -15,12 +17,21 @@
     }[] = []
 
     let chat_history = initial_chat_history
+    onMount(() => {
+      fetch('/api/chat', {
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then((r) => r.json())
+        .then((r) => {
+          roles = r.models.map((r) => ({ name: r }))
+        })
+    })
 
     async function handleSubmit(this: HTMLFormElement) {
       if ($response.loading) {
         return
       }
-    
+
       const formData: FormData = new FormData(this)
       const message = formData.get('message') as string
 
@@ -57,45 +68,49 @@
         ]
       }
     }
+    const findTask = (content: string) => {
+      console.log('content', content)
+      return chatTasks.find((r) => r.question === content || r.cmd === content)
+    }
 </script>
 
 <main class="flex flex-col space-y-4 w-full p-3 h-100">
     <div class="flex flex-col space-y-2">
-        <h1 class="text-3xl font-bold underline">Trained model!</h1>
+        <h1 class="text-3xl font-bold"> 👨‍💻 TommyBot</h1>
     </div>
 
     <form
-        class="chat-wrapper h-100"
-        on:submit|preventDefault={handleSubmit}
-        method="POST"
-        action="/api/chat"
+    class="chat-wrapper h-100"
+    on:submit|preventDefault={handleSubmit}
+    method="POST"
+    action="/api/chat"
     >
-        Select model <select
+    {#if roles.length > 0}
+        Select your flavour:<select
             name="role"
-bind:value={$modelStore}
+            bind:value={$modelStore}
             on:change={(e) => {
                 modelStore.update(() => e.target.selectedOptions[0].value)
             }}
         >
-            <option  value="" selected disabled hidden>Select model...</option>
+            <option value="" selected disabled hidden>Select model...</option>
             {#each roles as role}
                 <option value={role.name}>{role.name}</option>
             {/each}
         </select>
+        {/if}
         <div
             class="flex flex-col space-y-2 overflow-y-auto w-full text-sm h-100"
         >
-        	{#if $modelStore}
+            {#if $modelStore}
                 {#await new Promise((res) => setTimeout(res, 400)) then _}
                     <div class="flex">
                         <div
                             in:fly={{ y: 50, duration: 400 }}
                             class="assistant-chat"
                         >
-                            What do you want to talk about?<br />
-                            <Button
-                                role={chatTasks[0]}
-                            />
+                            What you want?<br />
+                            <Button tasks={chatTasks[0].tasks} />
                         </div>
                     </div>
                 {/await}
@@ -125,10 +140,8 @@ bind:value={$modelStore}
                             {:then html}
                                 {@html html}
                             {/await}
-                            {#if  chatTasks.find(r => r.cmd === chat_history[index - 1].content)}
-                                <Button
-                                    role={chatTasks.find(r => r.cmd === chat_history[index - 1].content)}
-                                />
+                            {#if findTask(chat.content)}
+                                <Button tasks={findTask(chat.content).tasks} />
                             {/if}
                         </div>
                     </div>
@@ -184,19 +197,23 @@ bind:value={$modelStore}
 
         <div class="h-px bg-gray-200" />
 
+        <div class="">
+            <Button tasks={chatTasks.map((r) => ({ prompt: r.cmd }))} />
+        </div>
+
         <span class="flex flex-row space-x-4">
-            <input
-                type="text"
-                placeholder="Type your message... or use /start or /task"
+            <textarea
                 name="message"
                 id="chat-message"
+                placeholder="About..."
                 class="chat-message"
-            on:keyup={e => {
-                if (e.key === 'Enter') {
-                    handleSubmit.call(e.target.closest('form'))
-                }
-            }}
-            />
+                on:keyup={(e) => {
+                    if (e.key === 'Enter' && e.shiftKey) {
+                        e.preventDefault()
+                        handleSubmit.call(e.target.closest('form'))
+                    }
+                }}
+            ></textarea>
             <button type="submit" tabindex="0" class="chat-send"> Send </button>
         </span>
     </form>

@@ -1,11 +1,10 @@
 <script lang="ts">
-    // import { chatTasks } from "../app.d";
-    export let role
+    import type { ChatTask, Task } from '../app'
+    export let tasks: Task[]
 </script>
 
 <div class="d-flex">
-    <input type='hidden' name='role' value={role.question}/>
-    {#each role.tasks as task}
+    {#each tasks as task}
         <button
             class="btn btn-secondary btn-sm mb-1 me-1"
             on:mouseup={(e) => {
@@ -16,7 +15,7 @@
                 setTimeout(() => {
                 const buttons = e.target.closest('.d-flex').querySelectorAll('button')
                 buttons.forEach(element => {
-                    element.disabled = true
+                    // element.disabled = true
                     element.tabindex = -1
                     element.blur()
                     document.querySelector('#chat-message').focus()

@@ -17,23 +17,35 @@ export const roles = [
 //   { name: 'productManager', prompt: 'Make a joke' },
 //   { name: 'researcher', prompt: 'Summarize' }
 ]
-export const chatTasks = [ {
+export interface ChatTask {
+  cmd: string
+  answer: string
+  question: string
+  tasks: Task[]
+}
+export interface Task {
+  prompt: string
+}
+export const chatTasks: ChatTask[] = [ {
   cmd: '/start',
-  question: 'What do you want to talk about',
+  question: 'Whats the given Task?',
+  answer: '',
   tasks: [
-    { prompt: 'How-to step by step instruction' },
-    { prompt: 'Make a joke' },
-    { prompt: 'Give me a summary' }
+    { prompt: 'joke' },
+    { prompt: 'summary' },
+    { prompt: 'step by step instruction' },
+    { prompt: 'code-output' },
     //   { prompt: 'Make a joke' },
     //   { prompt: 'Summarize' }
   ]
 },
 {
-  cmd: '/task',
-  question: 'Okay tell me about your task',
+  cmd: '/tone',
+  question: 'What should the tone be like?',
+  answer: 'In which tone?',
   tasks: [
-    { prompt: 'I need a lesson-plan for Chemistry' },
-    { prompt: 'I need to correct Homework' }
+    { prompt: 'very easy to understand' },
+    { prompt: 'very complex and specific' }
     //   { prompt: 'Make a joke' },
     //   { prompt: 'Summarize' }
   ]
