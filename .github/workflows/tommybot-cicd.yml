@@ -77,10 +77,10 @@ jobs:
             --path kubernetes/charts/tommybot
             --revision ${{ github.ref_name }}
             --dest-server https://kubernetes.default.svc
-            --dest-namespace tommybot
+            --dest-namespace llm
             --auth-token ${{ secrets.ARGOCD_AUTH_TOKEN }}
             --server c.tmy.io
-            --project tommybot
+            --project llm
             --sync-policy automated
             --helm-set ingress.enabled=true
             --helm-set image.tag=${{ github.ref_name }}@${{ steps.build-and-push.outputs.digest }}
@@ -97,10 +97,10 @@ jobs:
             --path kubernetes/charts/tommybot
             --revision main
             --dest-server https://kubernetes.default.svc
-            --dest-namespace tommybot
+            --dest-namespace llm
             --auth-token ${{ secrets.ARGOCD_AUTH_TOKEN }}
             --server c.tmy.io
-            --project tommybot
+            --project llm
             --sync-policy automated
             --helm-set ingress.enabled=true
             --helm-set ingress.hosts[0].host=tommybot.tmy.io
@@ -108,5 +108,4 @@ jobs:
             --helm-set ingress.hosts[0].paths[0].pathType=Prefix
             --helm-set ingress.tls[0].hosts[0]=tommybot.tmy.io
             --helm-set ingress.tls[0].secretName=tommybot-tls
-            --helm-set databaseExistingSecret=tommybot-credentials
             --helm-set image.tag=main@${{ steps.build-and-push.outputs.digest }}
