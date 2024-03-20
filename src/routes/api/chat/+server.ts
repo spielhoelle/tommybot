@@ -80,7 +80,6 @@ export const POST = async ({ request }) => {
 
   const readableStream = new ReadableStream({
     async start(controller) {
-      console.log('OLLAMA_BASE_URL', OLLAMA_BASE_URL)
       const llm = new Ollama({
         model: theModel,
         baseUrl: OLLAMA_BASE_URL,
