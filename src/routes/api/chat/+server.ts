@@ -3,39 +3,40 @@ import { CallbackManager } from 'langchain/callbacks'
 import { PromptTemplate } from 'langchain/prompts'
 import { error } from '@sveltejs/kit'
 import { chatTasks } from '../../../app.d'
-import util from 'util'
-import child_process from 'child_process'
-const exec = util.promisify(child_process.exec)
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'https://pp.tmy.io'
+// import util from 'util'
+// import child_process from 'child_process'
+// const exec = util.promisify(child_process.exec)
 
 export type MessageBody = { chats: { role: 'user' | 'assistant', content: string }[], model: string }
 
 const promptArray: string[] = []
 let promptTemplate = `Evaluate`
 
-export const GET = async ({ request }) => {
-  const promise = exec("ollama ls | awk '{print $1}' |  tail -n +2")
-  const child = promise.child
+// export const GET = async ({ request }) => {
+//   const promise = exec("ollama ls | awk '{print $1}' |  tail -n +2")
+//   const child = promise.child
 
-  child.stdout?.on('data', (data) => {
-    // console.log('stdout: ' + data)
-  })
-  child.stderr?.on('data', (data) => {
-    console.log('stderr: ' + data)
-  })
-  // child.on('close', (code) => {
-  // console.log('closing code: ' + code)
-  // })
-  const { stdout, stderr } = await promise
-  if (stderr) {
-    return new Response(JSON.stringify({ err: stderr }), {
-      headers: { 'Content-Type': 'text/plain' },
-    })
-  }
-  const res = stdout.split('\n').map(m => m.replace(':latest', ''))
-  return new Response(JSON.stringify({ models: res }), {
-    headers: { 'Content-Type': 'text/plain' },
-  })
-}
+//   child.stdout?.on('data', (data) => {
+//     // console.log('stdout: ' + data)
+//   })
+//   child.stderr?.on('data', (data) => {
+//     console.log('stderr: ' + data)
+//   })
+//   // child.on('close', (code) => {
+//   // console.log('closing code: ' + code)
+//   // })
+//   const { stdout, stderr } = await promise
+//   if (stderr) {
+//     return new Response(JSON.stringify({ err: stderr }), {
+//       headers: { 'Content-Type': 'text/plain' },
+//     })
+//   }
+//   const res = stdout.split('\n').map(m => m.replace(':latest', ''))
+//   return new Response(JSON.stringify({ models: res }), {
+//     headers: { 'Content-Type': 'text/plain' },
+//   })
+// }
 export const POST = async ({ request }) => {
   const body: MessageBody = await request.json()
 
@@ -79,9 +80,10 @@ export const POST = async ({ request }) => {
 
   const readableStream = new ReadableStream({
     async start(controller) {
+      console.log('OLLAMA_BASE_URL', OLLAMA_BASE_URL)
       const llm = new Ollama({
         model: theModel,
-        //baseUrl: 'http://127.0.0.1:11435',
+        baseUrl: OLLAMA_BASE_URL,
         callbackManager: CallbackManager.fromHandlers({
           handleLLMNewToken: async (token: string) => controller.enqueue(token),
         }),

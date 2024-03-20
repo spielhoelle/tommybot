@@ -7,7 +7,7 @@
     import { chatTasks } from '../app.d'
     import Button from './button.svelte'
     import { onMount } from 'svelte'
-    let roles = []
+    let roles = [{ name: 'mistral' }]
 
     const response = readablestreamStore()
 
@@ -17,15 +17,15 @@
     }[] = []
 
     let chat_history = initial_chat_history
-    onMount(() => {
-      fetch('/api/chat', {
-        headers: { 'Content-Type': 'application/json' },
-      })
-        .then((r) => r.json())
-        .then((r) => {
-          roles = r.models.map((r) => ({ name: r }))
-        })
-    })
+    // onMount(() => {
+    //   fetch('/api/chat', {
+    //     headers: { 'Content-Type': 'application/json' },
+    //   })
+    //     .then((r) => r.json())
+    //     .then((r) => {
+    //       roles = r.models.map((r) => ({ name: r }))
+    //     })
+    // })
 
     async function handleSubmit(this: HTMLFormElement) {
       if ($response.loading) {
