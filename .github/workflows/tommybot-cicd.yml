@@ -64,6 +64,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: PUBLIC_OLLAMA_BASE_URL=${{ secrets.PUBLIC_OLLAMA_BASE_URL }}
 
       - uses: clowdhaus/argo-cd-action/@main
         if: startsWith(github.ref, 'refs/tags/v')
