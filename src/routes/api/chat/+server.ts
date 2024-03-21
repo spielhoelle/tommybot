@@ -3,7 +3,7 @@ import { CallbackManager } from 'langchain/callbacks'
 import { PromptTemplate } from 'langchain/prompts'
 import { error } from '@sveltejs/kit'
 import { chatTasks } from '../../../app.d'
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'https://pp.tmy.io'
+const PUBLIC_OLLAMA_BASE_URL = process.env.PUBLIC_OLLAMA_BASE_URL || 'https://pp.tmy.io'
 // import util from 'util'
 // import child_process from 'child_process'
 // const exec = util.promisify(child_process.exec)
@@ -82,7 +82,7 @@ export const POST = async ({ request }) => {
     async start(controller) {
       const llm = new Ollama({
         model: theModel,
-        baseUrl: OLLAMA_BASE_URL,
+        baseUrl: PUBLIC_OLLAMA_BASE_URL,
         callbackManager: CallbackManager.fromHandlers({
           handleLLMNewToken: async (token: string) => controller.enqueue(token),
         }),
