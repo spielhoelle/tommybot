@@ -7,7 +7,8 @@
     import { chatTasks } from '../app.d'
     import Button from './button.svelte'
     import { onMount } from 'svelte'
-    let roles = [{ name: 'mistral' }]
+    import { PUBLIC_OLLAMA_BASE_URL } from '$env/static/public'
+    let roles = []
 
     const response = readablestreamStore()
 
@@ -17,15 +18,15 @@
     }[] = []
 
     let chat_history = initial_chat_history
-    // onMount(() => {
-    //   fetch('/api/chat', {
-    //     headers: { 'Content-Type': 'application/json' },
-    //   })
-    //     .then((r) => r.json())
-    //     .then((r) => {
-    //       roles = r.models.map((r) => ({ name: r }))
-    //     })
-    // })
+    onMount(() => {
+      fetch(`${PUBLIC_OLLAMA_BASE_URL}/api/tags`, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then((r) => r.json())
+        .then((r) => {
+          roles = r.models.map((r) => ({ name: r.name }))
+        })
+    })
 
     async function handleSubmit(this: HTMLFormElement) {
       if ($response.loading) {
@@ -44,7 +45,7 @@
 
       try {
         const answer = response.request(
-          new Request('/api/chat', {
+          new Request(`/api/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

@@ -2,7 +2,7 @@
 
 A quite cheap replica of the original, but we're getting there.
 
-Chat interface to multiple fine-tuned versions of common foundation models, such as mistral, llama-2, and more  - which form the backbone of TommyBot.
+Chat interface to multiple fine-tuned versions of common foundation models, such as mistral, llama-2, and more - which form the backbone of TommyBot.
 <img width="1676" alt="Xnapper-2023-04-16-02 58 44" src="https://user-images.githubusercontent.com/20548516/232283556-67a5e493-5685-4335-98bd-23d26b262667.png">
 
 # sveltekit-chat
