@@ -8,6 +8,7 @@
     import Button from './button.svelte'
     import { onMount } from 'svelte'
     import { PUBLIC_OLLAMA_BASE_URL } from '$env/static/public'
+    console.log('PUBLIC_OLLAMA_BASE_URL', PUBLIC_OLLAMA_BASE_URL)
     let roles = []
 
     const response = readablestreamStore()
