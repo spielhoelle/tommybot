@@ -5,7 +5,10 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
-ENV PUBLIC_OLLAMA_BASE_URL=${PUBLIC_OLLAMA_BASE_URL}
+
+ARG PUBLIC_OLLAMA_BASE_URL
+ENV PUBLIC_OLLAMA_BASE_URL ${PUBLIC_OLLAMA_BASE_URL?nopublicurl}
+
 RUN pnpm build
 EXPOSE 3000
 CMD ["node", "build"]
