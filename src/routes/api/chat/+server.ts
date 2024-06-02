@@ -3,7 +3,7 @@ import { CallbackManager } from 'langchain/callbacks'
 import { PromptTemplate } from 'langchain/prompts'
 import { error } from '@sveltejs/kit'
 import { chatTasks } from '../../../app.d'
-const PUBLIC_OLLAMA_BASE_URL = process.env.PUBLIC_OLLAMA_BASE_URL || 'https://pp.tmy.io'
+const PUBLIC_OLLAMA_BASE_URL = process.env.PUBLIC_OLLAMA_BASE_URL || 'https://ai.tmy.io'
 // import util from 'util'
 // import child_process from 'child_process'
 // const exec = util.promisify(child_process.exec)
