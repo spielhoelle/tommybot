@@ -71,7 +71,7 @@
       }
     }
     const findTask = (content: string) => {
-      console.log('content', content)
+    //   console.log('content', content)
       return chatTasks.find((r) => r.question === content || r.cmd === content)
     }
 </script>
