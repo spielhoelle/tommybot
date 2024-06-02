@@ -6,10 +6,10 @@
     import { modelStore, chatHistoryStore } from '../stores.ts'
     import { chatTasks } from '../app.d'
     import Button from './button.svelte'
-    import { onMount } from 'svelte'
+    // import { onMount } from 'svelte'
     import { PUBLIC_OLLAMA_BASE_URL } from '$env/static/public'
     console.log('PUBLIC_OLLAMA_BASE_URL', PUBLIC_OLLAMA_BASE_URL)
-    let roles = []
+    let roles = ['llama3']
 
     const response = readablestreamStore()
 
@@ -19,15 +19,15 @@
     }[] = []
 
     let chat_history = initial_chat_history
-    onMount(() => {
-      fetch(`${PUBLIC_OLLAMA_BASE_URL}/api/tags`, {
-        headers: { 'Content-Type': 'application/json' },
-      })
-        .then((r) => r.json())
-        .then((r) => {
-          roles = r.models.map((r) => ({ name: r.name }))
-        })
-    })
+    // onMount(() => {
+    //   fetch(`${PUBLIC_OLLAMA_BASE_URL}/api/tags`, {
+    //     headers: { 'Content-Type': 'application/json' },
+    //   })
+    //     .then((r) => r.json())
+    //     .then((r) => {
+    //       roles = r.models.map((r) => ({ name: r.name }))
+    //     })
+    // })
 
     async function handleSubmit(this: HTMLFormElement) {
       if ($response.loading) {
@@ -87,7 +87,7 @@
     method="POST"
     action="/api/chat"
     >
-    {#if roles.length > 0}
+    {#if roles.length > 0 && roles.length !== 1}
         Select your flavour:<select
             name="role"
             bind:value={$modelStore}
