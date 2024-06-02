@@ -9,11 +9,6 @@ const PUBLIC_OLLAMA_BASE_URL = process.env.PUBLIC_OLLAMA_BASE_URL || 'https://ai
 // const exec = util.promisify(child_process.exec)
 
 export type MessageBody = { chats: { role: 'user' | 'assistant', content: string }[], model: string }
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Specify the url you wish to permit
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-}
 
 const promptArray: string[] = []
 let promptTemplate = `Evaluate`
@@ -34,12 +29,12 @@ let promptTemplate = `Evaluate`
 //   const { stdout, stderr } = await promise
 //   if (stderr) {
 //     return new Response(JSON.stringify({ err: stderr }), {
-//       headers: corsHeaders,
+//       headers: { 'Content-Type': 'text/plain' },
 //     })
 //   }
 //   const res = stdout.split('\n').map(m => m.replace(':latest', ''))
 //   return new Response(JSON.stringify({ models: res }), {
-//     headers: corsHeaders,
+//     headers: { 'Content-Type': 'text/plain' },
 //   })
 // }
 export const POST = async ({ request }) => {
@@ -58,7 +53,7 @@ export const POST = async ({ request }) => {
   const roleToUseAndAbort = chatTasks.find(r => r.cmd === lastChatMessage)
   if (roleToUseAndAbort) {
     return new Response(roleToUseAndAbort.question, {
-      headers: corsHeaders,
+      headers: { 'Content-Type': 'text/plain' },
     })
   }
 
@@ -67,7 +62,7 @@ export const POST = async ({ request }) => {
     promptArray[taskToAbort] = lastChatMessage
     const nextAnswer = chatTasks[taskToAbort + 1]
     return new Response(nextAnswer ? nextAnswer.answer : 'About what?', {
-      headers: corsHeaders,
+      headers: { 'Content-Type': 'text/plain' },
     })
   }
   if (promptArray.length === 1) {
@@ -79,7 +74,7 @@ export const POST = async ({ request }) => {
   console.log('promptTemplate', promptTemplate, promptArray)
   // else {
   // return new Response('About what?', {
-  //   headers: corsHeaders,
+  //   headers: { 'Content-Type': 'text/plain' },
   // })
   // }
 
@@ -112,7 +107,7 @@ export const POST = async ({ request }) => {
   })
 
   return new Response(readableStream, {
-    headers: corsHeaders,
+    headers: { 'Content-Type': 'text/plain' },
   })
 }
 
