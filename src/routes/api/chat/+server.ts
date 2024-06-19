@@ -87,7 +87,7 @@ export const POST = async ({ request }) => {
           handleLLMNewToken: async (token: string) => controller.enqueue(token),
         }),
       })
-      const producePromptTemplate = (promptTemplate: string) => `${promptTemplate} about the following prompt in one sentence, delimited by triple quotes: """{object}""".`
+      const producePromptTemplate = (promptTemplate: string) => `${promptTemplate} about the following prompt in one sentence, delimited by triple quotes: \m"""\m{object}\n"""\n\n. Just respond with the pure answer, no smalltalk or further explanation.`
 
       const prompt = PromptTemplate.fromTemplate(producePromptTemplate(promptTemplate))
 
