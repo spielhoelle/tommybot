@@ -61,7 +61,7 @@
 
         chat_history = [
           ...chat_history,
-          { role: 'assistant', content: (await answer) as string },
+          { role: 'assistant', content: (await answer).toString().replace(/""/g, '"') },
         ]
       } catch (err) {
         chat_history = [
@@ -95,7 +95,7 @@
                 modelStore.update(() => e.target.selectedOptions[0].value)
             }}
         >
-            <option value="" selected disabled hidden>Select model...</option>
+            <option value="selected disabled hidden">Select model...</option>
             {#each roles as role}
                 <option value={role.name}>{role.name}</option>
             {/each}

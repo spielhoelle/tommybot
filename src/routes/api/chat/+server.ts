@@ -71,7 +71,6 @@ export const POST = async ({ request }) => {
   if (promptArray.length === chatTasks.length) {
     promptTemplate = `Give me a ${promptArray[0]} in a ${promptArray[1]} tone`
   }
-  console.log('promptTemplate', promptTemplate, promptArray)
   // else {
   // return new Response('About what?', {
   //   headers: { 'Content-Type': 'text/plain' },
@@ -87,14 +86,15 @@ export const POST = async ({ request }) => {
           handleLLMNewToken: async (token: string) => controller.enqueue(token),
         }),
       })
-      const producePromptTemplate = (promptTemplate: string) => `${promptTemplate} about the following prompt in one sentence, delimited by triple quotes: \m"""\m{object}\n"""\n\n. Just respond with the pure answer, no smalltalk or further explanation.`
+      const producePromptTemplate = (promptTemplate: string) => `${promptTemplate} about the following prompt in one sentence, delimited by triple quotes: \n"""\n{object}\n"""\n\n. Just respond with the pure answer, no smalltalk or further explanation.`
 
       const prompt = PromptTemplate.fromTemplate(producePromptTemplate(promptTemplate))
 
       const formattedPrompt = await prompt.format({
         object: lastChatMessage
       })
-      console.log('Model and prompt: ', theModel, formattedPrompt)
+      // console.log('Model: ', theModel)
+      // console.log('formattedPrompt: ', formattedPrompt)
       const stream = await llm.stream(
         formattedPrompt,
       )
