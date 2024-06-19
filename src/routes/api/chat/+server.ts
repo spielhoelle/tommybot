@@ -98,10 +98,11 @@ export const POST = async ({ request }) => {
       const stream = await llm.stream(
         formattedPrompt,
       )
-      const chunks = []
+      let chunks = []
       for await (const chunk of stream) {
         chunks.push(chunk)
       }
+      chunks = chunks.map(c => c.replace(/"/g, ''))
       controller.close()
     },
   })
