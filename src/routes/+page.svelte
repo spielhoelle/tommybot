@@ -104,7 +104,7 @@
         <div
             class="flex flex-col space-y-2 overflow-y-auto w-full text-sm h-100"
         >
-            {#if $modelStore}
+            <!-- {#if $modelStore}
                 {#await new Promise((res) => setTimeout(res, 400)) then _}
                     <div class="flex">
                         <div
@@ -116,7 +116,7 @@
                         </div>
                     </div>
                 {/await}
-            {/if}
+            {/if} -->
             {#each chat_history as chat, index}
                 {#if chat.role == 'user'}
                     <div class="flex justify-end">
@@ -199,9 +199,9 @@
 
         <div class="h-px bg-gray-200" />
 
-        <div class="">
+        <!-- <div class="">
             <Button tasks={chatTasks.map((r) => ({ prompt: r.cmd }))} />
-        </div>
+        </div> -->
 
         <span class="flex flex-row space-x-4">
             <textarea

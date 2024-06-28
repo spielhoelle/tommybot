@@ -39,6 +39,7 @@ let promptTemplate = `Evaluate`
 // }
 export const POST = async ({ request }) => {
   const body: MessageBody = await request.json()
+  console.log('bodbodyy', body)
 
   if (!body) {
     throw error(400, 'Missing Data')
@@ -65,6 +66,7 @@ export const POST = async ({ request }) => {
       headers: { 'Content-Type': 'text/plain' },
     })
   }
+  console.log('propromptArraymptArray', promptArray)
   if (promptArray.length === 1) {
     promptTemplate = `Give me a ${promptArray[0]}`
   }
@@ -88,11 +90,18 @@ export const POST = async ({ request }) => {
       })
       const producePromptTemplate = (promptTemplate: string) => `${promptTemplate} about the following prompt in one sentence, delimited by triple quotes: \n"""\n{object}\n"""\n\n. Just respond with the pure answer, no smalltalk or further explanation.`
 
-      const prompt = PromptTemplate.fromTemplate(producePromptTemplate(promptTemplate))
+      let pT = ""
+      if (promptArray.length == 0) {
+        pT = lastChatMessage
+      } else {
+        pT = producePromptTemplate(promptTemplate)
+      }
+      const prompt = PromptTemplate.fromTemplate(pT)
 
       const formattedPrompt = await prompt.format({
         object: lastChatMessage
       })
+      console.log('formattedPrompt', formattedPrompt)
       // console.log('Model: ', theModel)
       // console.log('formattedPrompt: ', formattedPrompt)
       const stream = await llm.stream(
