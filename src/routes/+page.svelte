@@ -6,9 +6,8 @@
     import { modelStore, chatHistoryStore } from '../stores.ts'
     import { chatTasks } from '../app.d'
     import Button from './button.svelte'
-    // import { onMount } from 'svelte'
+    import { onMount } from 'svelte'
     import { PUBLIC_OLLAMA_BASE_URL } from '$env/static/public'
-    console.log('PUBLIC_OLLAMA_BASE_URL', PUBLIC_OLLAMA_BASE_URL)
     let roles = ['llama3']
 
     const response = readablestreamStore()
@@ -19,15 +18,16 @@
     }[] = []
 
     let chat_history = initial_chat_history
-    // onMount(() => {
-    //   fetch(`${PUBLIC_OLLAMA_BASE_URL}/api/tags`, {
-    //     headers: { 'Content-Type': 'application/json' },
-    //   })
-    //     .then((r) => r.json())
-    //     .then((r) => {
-    //       roles = r.models.map((r) => ({ name: r.name }))
-    //     })
-    // })
+    onMount(() => {
+        chat_history = $chatHistoryStore || initial_chat_history
+      fetch(`${PUBLIC_OLLAMA_BASE_URL}/api/tags`, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then((r) => r.json())
+        .then((r) => {
+          roles = r.models.map((r) => ({ name: r.name }))
+        })
+    })
 
     async function handleSubmit(this: HTMLFormElement) {
       if ($response.loading) {
@@ -104,7 +104,7 @@
         <div
             class="flex flex-col space-y-2 overflow-y-auto w-full text-sm h-100"
         >
-            <!-- {#if $modelStore}
+            {#if $modelStore}
                 {#await new Promise((res) => setTimeout(res, 400)) then _}
                     <div class="flex">
                         <div
@@ -116,7 +116,7 @@
                         </div>
                     </div>
                 {/await}
-            {/if} -->
+            {/if}
             {#each chat_history as chat, index}
                 {#if chat.role == 'user'}
                     <div class="flex justify-end">
@@ -215,7 +215,7 @@
                         handleSubmit.call(e.target.closest('form'))
                     }
                 }}
-            ></textarea>
+            >Tell me a short joke about vector-databases</textarea>
             <button type="submit" tabindex="0" class="chat-send"> Send </button>
         </span>
     </form>
