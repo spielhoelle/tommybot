@@ -1,105 +1,129 @@
 <script lang="ts">
-    import { readablestreamStore } from '$lib/readablestreamstore'
-    import { markdownParser } from '$lib/markdownparser'
-    import { fly } from 'svelte/transition'
-    import Typingindicator from '$lib/typingindicator.svelte'
-    import { modelStore, chatHistoryStore } from '../stores.ts'
-    import { chatTasks } from '../app.d'
-    import Button from './button.svelte'
-    import { onMount } from 'svelte'
-    import { PUBLIC_OLLAMA_BASE_URL } from '$env/static/public'
-    let roles = ['llama3']
+    import { readablestreamStore } from "$lib/readablestreamstore";
+    import { markdownParser } from "$lib/markdownparser";
+    import { fly } from "svelte/transition";
+    import Typingindicator from "$lib/typingindicator.svelte";
+    import { modelStore, chatHistoryStore } from "../stores.ts";
+    import { chatTasks } from "../app.d";
+    import Button from "./button.svelte";
+    import { onMount } from "svelte";
+    import { PUBLIC_OLLAMA_BASE_URL } from "$env/static/public";
+    let roles = ["llama3"];
 
-    const response = readablestreamStore()
+    const response = readablestreamStore();
 
     const initial_chat_history: {
-        role: 'user' | 'assistant';
+        role: "user" | "assistant";
         content: string;
-    }[] = []
+    }[] = [{
+        role: "assistant",
+        content: "Hello, I am TommyBot. How can I help you?",
+    }];
 
-    let chat_history = initial_chat_history
+    let chat_history = initial_chat_history;
     onMount(() => {
-        chat_history = $chatHistoryStore || initial_chat_history
-      fetch(`${PUBLIC_OLLAMA_BASE_URL}/api/tags`, {
-        headers: { 'Content-Type': 'application/json' },
-      })
-        .then((r) => r.json())
-        .then((r) => {
-          roles = r.models.map((r) => ({ name: r.name }))
+        chat_history = $chatHistoryStore || initial_chat_history;
+        console.log(chat_history)
+        console.log( typeof($chatHistoryStore ) === "object")
+        if ( typeof($chatHistoryStore ) === "object"){
+            chat_history = [{ role: "assistant", content: "Hello, I am TommyBot. How can I help you?" }];
+        }
+        console.log(chat_history)
+        fetch(`${PUBLIC_OLLAMA_BASE_URL}/api/tags`, {
+            headers: { "Content-Type": "application/json" },
         })
-    })
+            .then((r) => r.json())
+            .then((r) => {
+                roles = r.models.map((r) => ({ name: r.name }));
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+    });
 
     async function handleSubmit(this: HTMLFormElement) {
-      if ($response.loading) {
-        return
-      }
+        if ($response.loading) {
+            return;
+        }
 
-      const formData: FormData = new FormData(this)
-      const message = formData.get('message') as string
+        const formData: FormData = new FormData(this);
+        const message = formData.get("message") as string;
 
-      if (!message) {
-        return
-      }
+        if (!message) {
+            return;
+        }
 
-      chat_history = [...chat_history, { role: 'user', content: message }]
-      chatHistoryStore.update(() => chat_history)
 
-      try {
-        const answer = response.request(
-          new Request(`/api/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chats: chat_history,
-              model: $modelStore,
-            }),
-          })
-        )
+        // if (chat_history.length === 0) {
+        //     chat_history = ;
+        // }
+        console.log('chat_history', chat_history);
+        chat_history = [...chat_history, { role: "user", content: message }];
+        console.log(chat_history);
+        chatHistoryStore.update(() => chat_history);
 
-        // this.reset()
-        this.elements['chat-message'].value = ''
+        try {
+            const answer = response.request(
+                new Request(`/api/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        chats: chat_history,
+                        model: $modelStore,
+                    }),
+                }),
+            );
 
-        chat_history = [
-          ...chat_history,
-          { role: 'assistant', content: (await answer).toString().replace(/""/g, '"') },
-        ]
-      } catch (err) {
-        chat_history = [
-          ...chat_history,
-          { role: 'assistant', content: `Error: ${err}` },
-        ]
-      }
+            // this.reset()
+            this.elements["chat-message"].value = "";
+
+            chat_history = [
+                ...chat_history,
+                {
+                    role: "assistant",
+                    content: (await answer).toString().replace(/""/g, '"'),
+                },
+            ];
+        } catch (err) {
+            chat_history = [
+                ...chat_history,
+                { role: "assistant", content: `Error: ${err}` },
+            ];
+        }
     }
     const findTask = (content: string) => {
-    //   console.log('content', content)
-      return chatTasks.find((r) => r.question === content || r.cmd === content)
-    }
+        //   console.log('content', content)
+        return chatTasks.find(
+            (r) => r.question === content || r.cmd === content,
+        );
+    };
 </script>
 
 <main class="flex flex-col space-y-4 w-full p-3 h-100">
     <div class="flex flex-col space-y-2">
-        <h1 class="text-3xl font-bold"> 👨‍💻 TommyBot</h1>
+        <h1 class="text-3xl font-bold">👨‍💻 TommyBot</h1>
     </div>
 
     <form
-    class="chat-wrapper h-100"
-    on:submit|preventDefault={handleSubmit}
-    method="POST"
-    action="/api/chat"
+        class="chat-wrapper h-100"
+        on:submit|preventDefault={handleSubmit}
+        method="POST"
+        action="/api/chat"
     >
-    {#if roles.length > 0 && roles.length !== 1}
-        Select your flavour:<select
-            name="role"
-            bind:value={$modelStore}
-            on:change={(e) => {
-                modelStore.update(() => e.target.selectedOptions[0].value)
-            }}
-        >
-            <option value="selected disabled hidden">Select model...</option>
-            {#each roles as role}
-                <option value={role.name}>{role.name}</option>
-            {/each}
-        </select>
+        {#if roles.length > 0 && roles.length !== 1}
+            Select your flavour:<select
+                name="role"
+                bind:value={$modelStore}
+                on:change={(e) => {
+                    modelStore.update(() => e.target.selectedOptions[0].value);
+                }}
+            >
+                <option value="selected disabled hidden">Select model...</option
+                >
+                {#each roles as role}
+                    <option value={role.name}>{role.name}</option>
+                {/each}
+            </select>
         {/if}
         <div
             class="flex flex-col space-y-2 overflow-y-auto w-full text-sm h-100"
@@ -117,39 +141,43 @@
                     </div>
                 {/await}
             {/if}
-            {#each chat_history as chat, index}
-                {#if chat.role == 'user'}
-                    <div class="flex justify-end">
-                        <div
-                            in:fly={{ y: 50, duration: 600 }}
-                            class="user-chat"
-                        >
-                            {#await markdownParser(chat.content)}
-                                {chat.content}
-                            {:then html}
-                                {@html html}
-                            {/await}
-                        </div>
-                    </div>
-                {:else}
-                    <div class="flex">
-                        <div
-                            in:fly={{ y: 50, duration: 600 }}
-                            class="assistant-chat"
-                        >
-                            {#await markdownParser(chat.content)}
-                                {chat.content}
-                            {:then html}
-                                {@html html}
-                            {/await}
-                            {#if findTask(chat.content)}
-                                <Button tasks={findTask(chat.content).tasks} />
-                            {/if}
-                        </div>
-                    </div>
-                {/if}
-            {/each}
 
+            {#if chat_history.length > 0}
+                {#each chat_history as chat, index}
+                    {#if chat.role == "user"}
+                        <div class="flex justify-end">
+                            <div
+                                in:fly={{ y: 50, duration: 600 }}
+                                class="user-chat"
+                            >
+                                {#await markdownParser(chat.content)}
+                                    {chat.content}
+                                {:then html}
+                                    {@html html}
+                                {/await}
+                            </div>
+                        </div>
+                    {:else}
+                        <div class="flex">
+                            <div
+                                in:fly={{ y: 50, duration: 600 }}
+                                class="assistant-chat"
+                            >
+                                {#await markdownParser(chat.content)}
+                                    {chat.content}
+                                {:then html}
+                                    {@html html}
+                                {/await}
+                                {#if findTask(chat.content)}
+                                    <Button
+                                        tasks={findTask(chat.content).tasks}
+                                    />
+                                {/if}
+                            </div>
+                        </div>
+                    {/if}
+                {/each}
+            {/if}
             {#if $response.loading}
                 {#await new Promise((res) => setTimeout(res, 400)) then _}
                     <div class="flex">
@@ -157,7 +185,7 @@
                             in:fly={{ y: 50, duration: 600 }}
                             class="assistant-chat"
                         >
-                            {#if $response.text == ''}
+                            {#if $response.text == ""}
                                 <Typingindicator />
                             {:else}
                                 {#await markdownParser($response.text)}
@@ -167,7 +195,7 @@
                                 {/await}
                             {/if}
                         </div>
-                        {#if $response.text != ''}
+                        {#if $response.text != ""}
                             <div class="w-2" />
                             <div class="w-4 m-1">
                                 <svg
@@ -210,12 +238,12 @@
                 placeholder="About..."
                 class="chat-message"
                 on:keyup={(e) => {
-                    if (e.key === 'Enter' && e.shiftKey) {
-                        e.preventDefault()
-                        handleSubmit.call(e.target.closest('form'))
+                    if (e.key === "Enter" && e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit.call(e.target.closest("form"));
                     }
-                }}
-            >Tell me a short joke about vector-databases</textarea>
+                }}>Tell me a short joke about vector-databases</textarea
+            >
             <button type="submit" tabindex="0" class="chat-send"> Send </button>
         </span>
     </form>

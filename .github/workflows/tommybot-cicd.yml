@@ -14,6 +14,8 @@ env:
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
   PUBLIC_OLLAMA_BASE_URL: ${{ secrets.PUBLIC_OLLAMA_BASE_URL }}
+  LANGCHAIN_TRACING_V2: ${{ secrets.LANGCHAIN_TRACING_V2 }}
+  LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
 
 jobs:
   cicd:
