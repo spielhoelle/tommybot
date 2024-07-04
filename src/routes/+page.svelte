@@ -23,12 +23,9 @@
     let chat_history = initial_chat_history;
     onMount(() => {
         chat_history = $chatHistoryStore || initial_chat_history;
-        console.log(chat_history)
-        console.log( typeof($chatHistoryStore ) === "object")
         if ( typeof($chatHistoryStore ) === "object"){
             chat_history = [{ role: "assistant", content: "Hello, I am TommyBot. How can I help you?" }];
         }
-        console.log(chat_history)
         fetch(`${PUBLIC_OLLAMA_BASE_URL}/api/tags`, {
             headers: { "Content-Type": "application/json" },
         })
@@ -242,7 +239,7 @@
                         e.preventDefault();
                         handleSubmit.call(e.target.closest("form"));
                     }
-                }}>Tell me a short joke about vector-databases</textarea
+                }}>Tell me a short joke about a random topic</textarea
             >
             <button type="submit" tabindex="0" class="chat-send"> Send </button>
         </span>
