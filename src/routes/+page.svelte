@@ -98,7 +98,7 @@
 
 <main class="flex flex-col space-y-4 w-full p-3 h-100">
     <div class="flex flex-col space-y-2">
-        <h1 class="text-3xl font-bold">👨‍💻 TommyBot</h1>
+        <h1 class="text-3xl font-bold">🧑‍🌾 TommyBot</h1>
     </div>
 
     <form
