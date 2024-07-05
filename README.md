@@ -1,5 +1,4 @@
-#  👨‍💻 TommyBot
-
+# 🧑‍🌾 TommyBot
 A quite cheap replica of the original, but we're getting there.
 
 Chat interface to multiple fine-tuned versions of common foundation models, such as mistral, llama-2, and more - which form the backbone of TommyBot.
