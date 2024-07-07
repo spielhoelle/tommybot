@@ -3,13 +3,24 @@ import { HumanChatMessage, AIChatMessage, SystemChatMessage } from "langchain/sc
 import { CallbackManager } from "langchain/callbacks"
 import { error } from '@sveltejs/kit'
 const PUBLIC_OLLAMA_BASE_URL = process.env.PUBLIC_OLLAMA_BASE_URL || 'https://ai.tmy.io'
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
 
 export type MessageBody = { chats: { role: 'user' | 'assistant', content: string }[], model: string }
 
-export const POST = async ({ request }) => {
+// async function saveUniqueMessage(content: string, role: string) {
+//   try {
+//     console.log('Message saved or already exists')
+//   } catch (error) {
+//     console.error('Error saving message:', error)
+//   }
+// }
+export const POST = async ({ cookies, request, url }) => {
+
+  const sessionCookie = cookies.get('session_id')
+
   try {
     const body: MessageBody = await request.json()
-    console.log(body)
 
     if (!body) throw error(400, 'Missing Data')
 
@@ -25,7 +36,7 @@ export const POST = async ({ request }) => {
           }),
         })
 
-        await chat.call([
+        const messages = await chat.call([
           new SystemChatMessage("You are a helpful assistant. Limit prose. Answer with markdown where appropiate."),
           new AIChatMessage("Hello! How can I help you today?"),
           ...body.chats.map(chat => chat.role == "user"
@@ -33,11 +44,40 @@ export const POST = async ({ request }) => {
             : new AIChatMessage(chat.content)
           )
         ])
+
         controller.close()
       },
     })
 
-    // Create and return a response of the readable stream
+
+    const searchParams = url.searchParams
+    console.log(searchParams)
+    console.log(body.chats.length)
+
+    const session = await prisma.session.findFirst({
+      where: {
+        token: sessionCookie
+      },
+    })
+    if (session != null) {
+      const lastTwoChats = body.chats.slice(-2)
+      lastTwoChats.forEach(async (chat, index) => {
+        console.log('save chat', chat.role, index)
+        const msg = await prisma.message.create({
+          data: {
+            role: chat.role,
+            content: chat.content,
+            session: {
+              connect: {
+                id: session.id
+              }
+            }
+          }
+        })
+        console.log('Created message: ', msg)
+      })
+    }
+
     return new Response(readableStream, {
       headers: { 'Content-Type': 'text/plain' },
     })

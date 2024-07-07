@@ -5,6 +5,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
+RUN npx prisma generate
 
 ARG PUBLIC_OLLAMA_BASE_URL
 ENV PUBLIC_OLLAMA_BASE_URL ${PUBLIC_OLLAMA_BASE_URL?nopublicurl}
