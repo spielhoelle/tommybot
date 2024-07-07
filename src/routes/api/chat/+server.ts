@@ -48,12 +48,7 @@ export const POST = async ({ cookies, request, url }) => {
         controller.close()
       },
     })
-
-
     const searchParams = url.searchParams
-    console.log(searchParams)
-    console.log(body.chats.length)
-
     const session = await prisma.session.findFirst({
       where: {
         token: sessionCookie
@@ -62,7 +57,6 @@ export const POST = async ({ cookies, request, url }) => {
     if (session != null) {
       const lastTwoChats = body.chats.slice(-2)
       lastTwoChats.forEach(async (chat, index) => {
-        console.log('save chat', chat.role, index)
         const msg = await prisma.message.create({
           data: {
             role: chat.role,
@@ -74,7 +68,6 @@ export const POST = async ({ cookies, request, url }) => {
             }
           }
         })
-        console.log('Created message: ', msg)
       })
     }
 
@@ -84,7 +77,6 @@ export const POST = async ({ cookies, request, url }) => {
 
   } catch (error) {
     console.log('error', error)
-
     return new Response(JSON.stringify(error), {
       headers: { 'Content-Type': 'text/plain' },
     })

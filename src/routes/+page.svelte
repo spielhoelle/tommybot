@@ -10,9 +10,14 @@
     import { PUBLIC_OLLAMA_BASE_URL } from "$env/static/public";
     import { enhance } from "$app/forms";
     let roles = ["llama3"];
-	export let data;
+
+    /** @type {import('./$types').PageData} */
+    export let data;
+
+    /** @type {import('./$types').ActionData} */
+    export let form;
+
     let formVisible = !data.token;
-    console.log(data);
     const response = readablestreamStore();
 
     const initial_chat_history: {
@@ -60,12 +65,7 @@
             return;
         }
 
-        // if (chat_history.length === 0) {
-        //     chat_history = ;
-        // }
-        console.log("chat_history", chat_history);
         chat_history = [...chat_history, { role: "user", content: message }];
-        console.log(chat_history);
         chatHistoryStore.update(() => chat_history);
 
         try {
@@ -98,7 +98,6 @@
         }
     }
     const findTask = (content: string) => {
-        //   console.log('content', content)
         return chatTasks.find(
             (r) => r.question === content || r.cmd === content,
         );
@@ -106,210 +105,315 @@
 </script>
 
 <main class="flex flex-col space-y-4 w-full p-3 h-100">
-    <div class="flex flex-col space-y-2">
-        <h1 class="text-3xl font-bold">🧑‍🌾 TommyBot</h1>
-    </div>
-
-    <div id="popup" class="popup {!formVisible ? `hidden` : ``}">
-        <div class="popup-content">
-            <div class="popup-header">
-                <h2>Welcome to TommyBot</h2>
-            </div>
-            <div class="popup-body">How is your email?</div>
-            <div class="popup-footer">
-                <form
-                    method="POST"
-                    action="?/submitname"
-                    use:enhance={({
-                        formElement,
-                        formData,
-                        action,
-                        cancel,
-                        submitter,
-                    }) => {
-                        // `formElement` is this `<form>` element
-                        // `formData` is its `FormData` object that's about to be submitted
-                        // `action` is the URL to which the form is posted
-                        // calling `cancel()` will prevent the submission
-                        // `submitter` is the `HTMLElement` that caused the form to be submitted
-
-                        return async ({ result, update }) => {
-                            if (result['status'] === 307 && result['location'].startsWith('?session=')) {
-                                console.log('result', result);
-                                formVisible = false
-                                // `result` is an `ActionResult` object
-                                // `update` is a function which triggers the default logic that would be triggered if this callback wasn't set
-                            }
-                            // `result` is an `ActionResult` object
-                            // `update` is a function which triggers the default logic that would be triggered if this callback wasn't set
-                        };
-                    }}
-                >
-                    <input type="text" name="email" />
-                    <button type="submit">Submit</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <form
-        class="chat-wrapper h-100"
-        on:submit|preventDefault={handleSubmit}
-        method="POST"
-        action="/api/chat"
-    >
-        {#if roles.length > 0 && roles.length !== 1}
-            Select your flavour:<select
-                name="role"
-                bind:value={$modelStore}
-                on:change={(e) => {
-                    modelStore.update(() => e.target.selectedOptions[0].value);
-                }}
-            >
-                <option value="selected disabled hidden">Select model...</option
-                >
-                {#each roles as role}
-                    <option value={role.name}>{role.name}</option>
-                {/each}
-            </select>
-        {/if}
-        <div
-            class="flex flex-col space-y-2 overflow-y-auto w-full text-sm h-100"
-        >
-            {#if $modelStore}
-                {#await new Promise((res) => setTimeout(res, 400)) then _}
-                    <div class="flex">
-                        <div
-                            in:fly={{ y: 50, duration: 400 }}
-                            class="assistant-chat"
+    <div class="flex flex-col space-y-2 h-full">
+        <div class="flex space-y-2 justify-between">
+            <h1 class="text-3xl font-bold ">🧑‍🌾 TommyBot</h1>
+            {#if roles.length > 0 && roles.length !== 1}
+                <div class="">
+                    <select
+                        class="w-auto bg-gray-200"
+                        name="role"
+                        bind:value={$modelStore}
+                        on:change={(e) => {
+                            modelStore.update(
+                                () => e.target.selectedOptions[0].value,
+                            );
+                        }}
+                    >
+                        <option disabled value="selected disabled"
+                            >Select model...</option
                         >
-                            What you want?<br />
-                            <Button tasks={chatTasks[0].tasks} />
-                        </div>
-                    </div>
-                {/await}
+                        {#each roles as role}
+                            <option value={role.name}>{role.name}</option>
+                        {/each}
+                    </select>
+                </div>
             {/if}
-
-            {#if chat_history.length > 0}
-                {#each chat_history as chat, index}
-                    {#if chat.role == "user"}
-                        <div class="flex justify-end">
+        </div>
+        <form
+            class="chat-wrapper h-100"
+            on:submit|preventDefault={handleSubmit}
+            method="POST"
+            action="/api/chat"
+        >
+            <div
+                class="flex flex-col space-y-2 overflow-y-auto w-full text-sm h-100"
+            >
+                {#if $modelStore}
+                    {#await new Promise((res) => setTimeout(res, 400)) then _}
+                        <div class="flex">
                             <div
-                                in:fly={{ y: 50, duration: 600 }}
-                                class="user-chat"
+                                in:fly={{ y: 50, duration: 400 }}
+                                class="assistant-chat"
                             >
-                                {#await markdownParser(chat.content)}
-                                    {chat.content}
-                                {:then html}
-                                    {@html html}
-                                {/await}
+                                What you want?<br />
+                                <Button tasks={chatTasks[0].tasks} />
                             </div>
                         </div>
-                    {:else}
+                    {/await}
+                {/if}
+
+                {#if chat_history.length > 0}
+                    {#each chat_history as chat, index}
+                        {#if chat.role == "user"}
+                            <div class="flex justify-end">
+                                <div
+                                    in:fly={{ y: 50, duration: 600 }}
+                                    class="user-chat"
+                                >
+                                    {#await markdownParser(chat.content)}
+                                        {chat.content}
+                                    {:then html}
+                                        {@html html}
+                                    {/await}
+                                </div>
+                            </div>
+                        {:else}
+                            <div class="flex">
+                                <div
+                                    in:fly={{ y: 50, duration: 600 }}
+                                    class="assistant-chat"
+                                >
+                                    {#await markdownParser(chat.content)}
+                                        {chat.content}
+                                    {:then html}
+                                        {@html html}
+                                    {/await}
+                                    {#if findTask(chat.content)}
+                                        <Button
+                                            tasks={findTask(chat.content).tasks}
+                                        />
+                                    {/if}
+                                </div>
+                            </div>
+                        {/if}
+                    {/each}
+                {/if}
+                {#if $response.loading}
+                    {#await new Promise((res) => setTimeout(res, 400)) then _}
                         <div class="flex">
                             <div
                                 in:fly={{ y: 50, duration: 600 }}
                                 class="assistant-chat"
                             >
-                                {#await markdownParser(chat.content)}
-                                    {chat.content}
-                                {:then html}
-                                    {@html html}
-                                {/await}
-                                {#if findTask(chat.content)}
-                                    <Button
-                                        tasks={findTask(chat.content).tasks}
-                                    />
+                                {#if $response.text == ""}
+                                    <Typingindicator />
+                                {:else}
+                                    {#await markdownParser($response.text)}
+                                        {$response.text}
+                                    {:then html}
+                                        {@html html}
+                                    {/await}
                                 {/if}
                             </div>
-                        </div>
-                    {/if}
-                {/each}
-            {/if}
-            {#if $response.loading}
-                {#await new Promise((res) => setTimeout(res, 400)) then _}
-                    <div class="flex">
-                        <div
-                            in:fly={{ y: 50, duration: 600 }}
-                            class="assistant-chat"
-                        >
-                            {#if $response.text == ""}
-                                <Typingindicator />
-                            {:else}
-                                {#await markdownParser($response.text)}
-                                    {$response.text}
-                                {:then html}
-                                    {@html html}
-                                {/await}
+                            {#if $response.text != ""}
+                                <div class="w-2" />
+                                <div class="w-4 m-1">
+                                    <svg
+                                        class="animate-spin h-4 w-4 text-neutral-600 dark:text-neutral-400"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            class="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            stroke-width="4"
+                                        />
+                                        <path
+                                            class="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        />
+                                    </svg>
+                                </div>
                             {/if}
                         </div>
-                        {#if $response.text != ""}
-                            <div class="w-2" />
-                            <div class="w-4 m-1">
-                                <svg
-                                    class="animate-spin h-4 w-4 text-neutral-600 dark:text-neutral-400"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle
-                                        class="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        stroke-width="4"
-                                    />
-                                    <path
-                                        class="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    />
-                                </svg>
-                            </div>
-                        {/if}
-                    </div>
-                {/await}
-            {/if}
-        </div>
+                    {/await}
+                {/if}
+            </div>
 
-        <div class="h-px bg-gray-200" />
+            <div class="h-px bg-gray-200" />
 
-        <!-- <div class="">
+            <!-- <div class="">
             <Button tasks={chatTasks.map((r) => ({ prompt: r.cmd }))} />
         </div> -->
 
-        <span class="flex flex-row space-x-4">
-            <textarea
-                name="message"
-                id="chat-message"
-                placeholder="About..."
-                class="chat-message"
-                on:keyup={(e) => {
-                    if (e.key === "Enter" && e.shiftKey) {
-                        e.preventDefault();
-                        handleSubmit.call(e.target.closest("form"));
-                    }
-                }}>Tell me a short joke about a random topic</textarea
+            <span class="flex flex-row space-x-4">
+                <textarea
+                    name="message"
+                    id="chat-message"
+                    placeholder="About..."
+                    class="chat-message"
+                    on:keyup={(e) => {
+                        if (e.key === "Enter" && e.shiftKey) {
+                            e.preventDefault();
+                            handleSubmit.call(e.target.closest("form"));
+                        }
+                    }}>Tell me a short joke about a random topic</textarea
+                >
+                <button type="submit" tabindex="0" class="chat-send">
+                    Send
+                </button>
+            </span>
+        </form>
+    </div>
+
+    <div id="popup" class="popup {!formVisible ? `hidden` : ``}">
+        <div class="backdrop"></div>
+        <div class="popup-content">
+            <div
+                class="flex min-h-full flex-col justify-center px-6 py-7 lg:px-8"
             >
-            <button type="submit" tabindex="0" class="chat-send"> Send </button>
-        </span>
-    </form>
+                <div class="sm:mx-auto sm:w-full sm:max-w-sm">
+                    <img
+                        class="mx-auto h-10 w-auto"
+                        src="favicon.png"
+                        alt="Spielhoelle Entertainment"
+                    />
+                    <h2
+                        class="mt-4 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900"
+                    >
+                        Welcome to TommyBot
+                    </h2>
+                </div>
+
+                <div class="mt-5 sm:mx-auto sm:w-full sm:max-w-sm">
+                    <form
+                        method="POST"
+                        action="?/submitname"
+                        use:enhance={({
+                            formElement,
+                            formData,
+                            action,
+                            cancel,
+                            submitter,
+                        }) => {
+                            return async ({ result, update }) => {
+                                if (
+                                    result["status"] === 200
+                                ) {
+                                    formVisible = false;
+                                }
+                            };
+                        }}
+                    >
+                        <div>
+                            <label
+                                for="email"
+                                class="block text-sm font-medium leading-6 text-gray-900"
+                                >Email address</label
+                            >
+                            <div class="mt-2">
+                                {form}
+                                {#if form?.alreadyExist}<p class="error">
+                                        Invalid credentials!
+                                    </p>{/if}
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    autocomplete="email"
+                                    value={form?.email ?? ""}
+                                    required
+                                    class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- <div>
+                                <div class="flex items-center justify-between">
+                                    <label
+                                        for="password"
+                                        class="block text-sm font-medium leading-6 text-gray-900"
+                                        >Name</label
+                                    >
+                                    <div class="text-sm">
+                                        <a
+                                            href="#"
+                                            class="font-semibold text-indigo-600 hover:text-indigo-500"
+                                            >Forgot password?</a
+                                        >
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type="password"
+                                        autocomplete="current-password"
+                                        required
+                                        class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                    />
+                                </div>
+                            </div> -->
+
+                        <div class="mt-3">
+                            <button
+                                type="submit"
+                                class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                                >Sign in</button
+                            >
+                        </div>
+                    </form>
+
+                    <!-- <p class="mt-10 text-center text-sm text-gray-500">
+                            Not a member?
+                            <a
+                                href="#"
+                                class="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
+                                >Start a 14 day free trial</a
+                            >
+                        </p> -->
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 
 <style lang="postcss">
-    .popup {
-        padding: 40px;
+    .backdrop {
         position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: -1;
+    }
+    .popup {
+        position: relative;
         z-index: 1;
-        left: 50%;
-        top: 50%;
-        width: 50%;
-        height: 50%;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         overflow: auto;
-        background-color: rgb(199, 199, 199);
         /* translate: 20px, 20px; */
-        transform: translate(-50%, -50%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .popup.hidden {
+        display: none;
+    }
+
+    .popup-content {
+        /* left: 50%;
+            top: 50%;
+            width: 50%;
+            height: 50%; */
+        background-color: rgb(184, 184, 184);
+        /* transform: translate(-50%, -50%); */
+        z-index: 1;
+    }
+    select {
+        border-color: lightgray;
+        /* background: var(--color-secondary);  */
+        border-radius: 3px;
     }
     .chat-wrapper {
         @apply flex flex-col space-y-4;

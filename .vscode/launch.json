@@ -1,0 +1,30 @@
+{
+	// This is a SvelteKit specific launch.json configuration for VS Code that always restarts the debugger
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "SvelteKit: Start and Debug",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": [
+				"run",
+				"dev"
+			],
+			// Remove the "port" property
+			"restart": true, // This ensures the debugger always restarts
+			"env": {
+				"NODE_ENV": "development"
+			},
+			"console": "integratedTerminal",
+			"internalConsoleOptions": "neverOpen",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"preLaunchTask": "", // You can specify a VS Code task to run before launching the debugger
+			"outFiles": [
+				"${workspaceFolder}/.svelte-kit/dev/**/*.js"
+			]
+		}
+	]
+}

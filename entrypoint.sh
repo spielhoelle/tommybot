@@ -40,22 +40,21 @@ if [ ! "$(docker ps -a -q -f name=gpsql_shadow)" ]; then
 	docker exec gpsql_shadow psql -Upostgres postgres -c "create database tommybot;"
 fi
 
-echo "111111111111111"
 
 # Check if schema.prisma is changed
 SCHEMA_CHANGED=$(git status --porcelain | grep "schema.prisma" 2>/dev/null || true)
+echo "SCHEMA_CHANGED"
+echo $SCHEMA_CHANGED
 
 if [ -f "prisma/migrations/migration_lock.toml" ]; then
   # Check if there's a difference detected by prisma migrate diff
-  echo "222222222222222"
   DIFFERENCE_DETECTED=$(npx prisma migrate diff --from-schema-datamodel prisma/schema.prisma --to-migrations prisma/migrations --shadow-database-url $SHADOW_DATABASE_URL | grep "No difference detected." || true)
 
-  echo "FFERENCE_DETECTED"
+  echo "DIFFERENCE_DETECTED"
   echo $DIFFERENCE_DETECTED
 
   if [ -z "$DIFFERENCE_DETECTED" ]; then
       # If schema.prisma is changed
-      echo "33333333333"
       echo "schema.prisma changed"
 
       # First create down migration
@@ -65,8 +64,7 @@ if [ -f "prisma/migrations/migration_lock.toml" ]; then
       # Then create up migration
       npx prisma migrate dev --create-only
       latest_migration_folder=$(ls -t -d prisma/migrations/*/ | head -1)
-      echo "latest_migration_folder"
-      echo $latest_migration_folder
+      echo "latest_migration_folder" + $latest_migration_folder
       mv down.sql $latest_migration_folder
       
       echo "Please adjust migration files manually in $latest_migration_folder"
@@ -75,7 +73,6 @@ if [ -f "prisma/migrations/migration_lock.toml" ]; then
       exit 1
   fi 
 else
-  echo "444444444444444"
   npx prisma migrate dev
   npx prisma db seed
 fi 
