@@ -8,23 +8,33 @@
     import Button from "./button.svelte";
     import { onMount } from "svelte";
     import { PUBLIC_OLLAMA_BASE_URL } from "$env/static/public";
+    import { enhance } from "$app/forms";
     let roles = ["llama3"];
-
+	export let data;
+    let formVisible = !data.token;
+    console.log(data);
     const response = readablestreamStore();
 
     const initial_chat_history: {
         role: "user" | "assistant";
         content: string;
-    }[] = [{
-        role: "assistant",
-        content: "Hello, I am TommyBot. How can I help you?",
-    }];
+    }[] = [
+        {
+            role: "assistant",
+            content: "Hello, I am TommyBot. How can I help you?",
+        },
+    ];
 
     let chat_history = initial_chat_history;
     onMount(() => {
         chat_history = $chatHistoryStore || initial_chat_history;
-        if ( typeof($chatHistoryStore ) === "object"){
-            chat_history = [{ role: "assistant", content: "Hello, I am TommyBot. How can I help you?" }];
+        if (typeof $chatHistoryStore === "object") {
+            chat_history = [
+                {
+                    role: "assistant",
+                    content: "Hello, I am TommyBot. How can I help you?",
+                },
+            ];
         }
         fetch(`${PUBLIC_OLLAMA_BASE_URL}/api/tags`, {
             headers: { "Content-Type": "application/json" },
@@ -50,11 +60,10 @@
             return;
         }
 
-
         // if (chat_history.length === 0) {
         //     chat_history = ;
         // }
-        console.log('chat_history', chat_history);
+        console.log("chat_history", chat_history);
         chat_history = [...chat_history, { role: "user", content: message }];
         console.log(chat_history);
         chatHistoryStore.update(() => chat_history);
@@ -99,6 +108,48 @@
 <main class="flex flex-col space-y-4 w-full p-3 h-100">
     <div class="flex flex-col space-y-2">
         <h1 class="text-3xl font-bold">🧑‍🌾 TommyBot</h1>
+    </div>
+
+    <div id="popup" class="popup {!formVisible ? `hidden` : ``}">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h2>Welcome to TommyBot</h2>
+            </div>
+            <div class="popup-body">How is your email?</div>
+            <div class="popup-footer">
+                <form
+                    method="POST"
+                    action="?/submitname"
+                    use:enhance={({
+                        formElement,
+                        formData,
+                        action,
+                        cancel,
+                        submitter,
+                    }) => {
+                        // `formElement` is this `<form>` element
+                        // `formData` is its `FormData` object that's about to be submitted
+                        // `action` is the URL to which the form is posted
+                        // calling `cancel()` will prevent the submission
+                        // `submitter` is the `HTMLElement` that caused the form to be submitted
+
+                        return async ({ result, update }) => {
+                            if (result['status'] === 307 && result['location'].startsWith('?session=')) {
+                                console.log('result', result);
+                                formVisible = false
+                                // `result` is an `ActionResult` object
+                                // `update` is a function which triggers the default logic that would be triggered if this callback wasn't set
+                            }
+                            // `result` is an `ActionResult` object
+                            // `update` is a function which triggers the default logic that would be triggered if this callback wasn't set
+                        };
+                    }}
+                >
+                    <input type="text" name="email" />
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <form
@@ -247,6 +298,19 @@
 </main>
 
 <style lang="postcss">
+    .popup {
+        padding: 40px;
+        position: fixed;
+        z-index: 1;
+        left: 50%;
+        top: 50%;
+        width: 50%;
+        height: 50%;
+        overflow: auto;
+        background-color: rgb(199, 199, 199);
+        /* translate: 20px, 20px; */
+        transform: translate(-50%, -50%);
+    }
     .chat-wrapper {
         @apply flex flex-col space-y-4;
     }

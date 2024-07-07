@@ -9,21 +9,46 @@ const prisma = new PrismaClient()
 export const load: ServerLoad = async ({ locals, url, cookies }) => {
     const sessionCookie = cookies.get('session_id')
     const searchParams = url.searchParams
-    let token
-    if (sessionCookie && !searchParams.get('session')) {
+    const session = searchParams.get('session')
+    if (sessionCookie && !session) {
         const session = await prisma.session.findFirst({
             where: {
                 token: sessionCookie
             },
         })
-        token = session?.token
-        redirect(307, '?session=' + session?.token)
-    } else if (!searchParams.get('session')) {
-        token = uuidv4()
+        return redirect(307, '?session=' + session?.token)
+    } else if (!sessionCookie && session) {
+        cookies.set('session_id', session, {
+            path: '/',
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: !dev,
+            maxAge: 60 * 60 * 24 * 7 // one week
+        })
+        return redirect(307, '?session=' + session)
+    }
+    return {
+        token: sessionCookie
+    }
+}
+
+/** @type {import('./$types').Actions} */
+export const actions = {
+
+    submitname: async ({ event, request, cookies }) => {
+        const data = await request.formData()
+        console.log('datdataa', data)
+
+        const token = uuidv4()
 
         const createdSession = await prisma.session.create({
             data: {
-                token: token
+                token: token,
+                user: {
+                    create: {
+                        email: data.get('email').toString()
+                    }
+                }
             }
         })
         console.log('Created new session', createdSession)
@@ -36,17 +61,11 @@ export const load: ServerLoad = async ({ locals, url, cookies }) => {
             maxAge: 60 * 60 * 24 * 7 // one week
         })
 
+        console.log('token2', token)
+        // return {
+        //     token
+        // }
         redirect(307, '?session=' + token)
-    } else {
-        token = searchParams.get('session')
-    }
 
-    return {
-        token
-    }
-
-    // return {
-    //     messages: [],
-    //     token: ""
-    // }
+    },
 }

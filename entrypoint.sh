@@ -45,7 +45,7 @@ echo "111111111111111"
 # Check if schema.prisma is changed
 SCHEMA_CHANGED=$(git status --porcelain | grep "schema.prisma" 2>/dev/null || true)
 
-if [ -f "prisma/migration_lock.toml" ]; then
+if [ -f "prisma/migrations/migration_lock.toml" ]; then
   # Check if there's a difference detected by prisma migrate diff
   echo "222222222222222"
   DIFFERENCE_DETECTED=$(npx prisma migrate diff --from-schema-datamodel prisma/schema.prisma --to-migrations prisma/migrations --shadow-database-url $SHADOW_DATABASE_URL | grep "No difference detected." || true)
