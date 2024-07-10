@@ -3,7 +3,7 @@
     export let tasks: Task[]
 </script>
 
-<div class="d-flex">
+<div class="flex mt-2">
     {#each tasks as task}
         <button
             class="btn btn-secondary btn-sm mb-1 me-1"
@@ -13,7 +13,7 @@
                     'chat-message'
                 ).value = e.target.innerText
                 setTimeout(() => {
-                const buttons = e.target.closest('.d-flex').querySelectorAll('button')
+                const buttons = e.target.closest('.flex').querySelectorAll('button')
                 buttons.forEach(element => {
                     // element.disabled = true
                     element.tabindex = -1
@@ -26,3 +26,10 @@
         ><br />
     {/each}
 </div>
+<style>
+    .btn {
+        background-color: #f8f9fa;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+</style>

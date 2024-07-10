@@ -107,8 +107,7 @@
 <main class="flex flex-col space-y-4 w-full p-3 h-100">
     <div class="flex flex-col space-y-2 h-full">
         <div class="flex space-y-2 justify-between">
-            <h1 class="text-3xl font-bold ">🧑‍🌾 TommyBot</h1>
-            {#if roles.length > 0 && roles.length !== 1}
+            <!-- {#if roles.length > 0 && roles.length !== 1}
                 <div class="">
                     <select
                         class="w-auto bg-gray-200"
@@ -128,7 +127,7 @@
                         {/each}
                     </select>
                 </div>
-            {/if}
+            {/if} -->
         </div>
         <form
             class="chat-wrapper h-100"
