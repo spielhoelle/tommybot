@@ -26,7 +26,7 @@
     }[] = [
         {
             role: "assistant",
-            content: "Hello, I am TommyBot. How can I help you?",
+            content: "Hello, I am TommyBot. What can I do for you?",
         },
     ];
 
