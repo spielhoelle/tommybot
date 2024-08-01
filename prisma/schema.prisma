@@ -17,8 +17,7 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   name      String?
-  session   Session?
-  sessionId Int?     @unique // Add the foreign key and ensure it's unique
+  sessions   Session[]
 }
 
 model Session {
@@ -26,7 +25,7 @@ model Session {
   token     String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  userId    Int       @unique // Ensure userId is unique for a one-to-one relationship
+  userId    Int       
   user      User      @relation(fields: [userId], references: [id])
   messages  Message[]
 }
